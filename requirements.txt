@@ -1,0 +1,6 @@
+gradio>=4.16.0
+spacy>=3.0.0
+autocorrect>=2.6.1
+contractions>=0.1.73
+bs4>=0.0.1
+textcleaner_partha>=0.3.2
