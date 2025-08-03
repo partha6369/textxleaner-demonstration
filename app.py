@@ -1,11 +1,12 @@
 # app.py
 
 import os
-import gradio as gr
 import random
 import spacy
 import subprocess
-from textcleaner_partha import preprocess, get_tokens
+import gradio as gr
+import textcleaner_partha as tcp
+from textcleaner_partha.preprocess import preprocess, get_tokens
 
 # Ensure spaCy model is available in HF Space environment
 try:
@@ -177,6 +178,69 @@ def random_example_get_tokens():
         result
     )
 
+def process_uploaded_file(
+    file_path,
+    lowercase,
+    remove_stopwords,
+    remove_html,
+    remove_emoji,
+    remove_whitespaces,
+    remove_punctuations,
+    expand_contraction,
+    expand_abbrev,
+    correct_spelling,
+    lemmatise,
+):
+    result = tcp.preprocess_file(
+        file_path,
+        lowercase,
+        remove_stopwords,
+        remove_html,
+        remove_emoji,
+        remove_whitespaces,
+        remove_punctuations,
+        expand_contraction,
+        expand_abbrev,
+        correct_spelling,
+        lemmatise,
+    )
+    if isinstance(result, list):  # Ensure proper formatting if output is a list
+        return "\n".join(result)
+    return str(result)  # Fallback for non-list output
+
+def get_tokens_from_file(
+    file_path,
+    lowercase,
+    remove_stopwords,
+    remove_html,
+    remove_emoji,
+    remove_whitespaces,
+    remove_punctuations,
+    expand_contraction,
+    expand_abbrev,
+    correct_spelling,
+    lemmatise,
+):
+    result = tcp.get_tokens_from_file(
+        file_path,
+        lowercase,
+        remove_stopwords,
+        remove_html,
+        remove_emoji,
+        remove_whitespaces,
+        remove_punctuations,
+        expand_contraction,
+        expand_abbrev,
+        correct_spelling,
+        lemmatise,
+    )
+
+    # Remove empty lists and format each list as a line of space-separated tokens
+    cleaned_result = [" ".join(f'"{token}"' for token in tokens) for tokens in result if tokens]
+
+    # Join them with newline characters
+    return "\n".join(cleaned_result)
+
 # Try to load the PayPal URL from the environment; if missing, use a placeholder
 paypal_url = os.getenv("PAYPAL_URL", "https://www.paypal.com/donate/dummy-link")
 
@@ -208,15 +272,15 @@ with gr.Blocks(title="textcleaner-partha by Dr. Partha Majumdar") as app:
                         example_output = gr.Textbox(label="Processed Output Text", lines=6)
         
                     with gr.Row():
-                        ex_lowercase = gr.Checkbox(label="Lowercase")
-                        ex_remove_stopwords = gr.Checkbox(label="Remove Stop Words")
-                        ex_remove_html = gr.Checkbox(label="Remove HTML tags")
-                        ex_remove_emoji = gr.Checkbox(label="Remove Emojis")
-                        ex_remove_whitespaces = gr.Checkbox(label="Remove White Spaces")
-                        ex_remove_punctuations = gr.Checkbox(label="Remove Punctuations")
-                        ex_expand_contraction = gr.Checkbox(label="Expand Contractions")
-                        ex_expand_abbrev = gr.Checkbox(label="Expand Abbreviations")
-                        ex_correct_spelling = gr.Checkbox(label="Correct Spellings")
+                        ex_lowercase = gr.Checkbox(label="Lowercase", value=True)
+                        ex_remove_stopwords = gr.Checkbox(label="Remove Stop Words", value=True)
+                        ex_remove_html = gr.Checkbox(label="Remove HTML tags", value=True)
+                        ex_remove_emoji = gr.Checkbox(label="Remove Emojis", value=True)
+                        ex_remove_whitespaces = gr.Checkbox(label="Remove White Spaces", value=True)
+                        ex_remove_punctuations = gr.Checkbox(label="Remove Punctuations", value=True)
+                        ex_expand_contraction = gr.Checkbox(label="Expand Contractions", value=True)
+                        ex_expand_abbrev = gr.Checkbox(label="Expand Abbreviations", value=True)
+                        ex_correct_spelling = gr.Checkbox(label="Correct Spellings", value=True)
                         ex_lemmatise = gr.Checkbox(label="Lemmatise")
         
                     example_button = gr.Button("Try an Example")
@@ -298,6 +362,48 @@ with gr.Blocks(title="textcleaner-partha by Dr. Partha Majumdar") as app:
                         ]
                     )
                     
+                with gr.Tab("Process from Files"):
+                    gr.Markdown("### Upload a TXT, DOCX, or PDF file for cleaning")
+                
+                    file_input = gr.File(
+                        label="Upload File",
+                        file_types=[".txt", ".docx", ".pdf"],  # Restrict file extensions
+                        type="filepath"  # Correct type to return the file path
+                    )
+
+                    with gr.Row():
+                        lowercase_ppf = gr.Checkbox(label="Lowercase", value=True)
+                        remove_stopwords_ppf = gr.Checkbox(label="Remove Stop Words", value=True)
+                        remove_html_ppf = gr.Checkbox(label="Remove HTML tags", value=True)
+                        remove_emoji_ppf = gr.Checkbox(label="Remove Emojis", value=True)
+                        remove_whitespaces_ppf = gr.Checkbox(label="Remove White Spaces", value=True)
+                        remove_punctuations_ppf = gr.Checkbox(label="Remove Punctuations", value=True)
+                        expand_contraction_ppf = gr.Checkbox(label="Expand Contractions", value=True)
+                        expand_abbrev_ppf = gr.Checkbox(label="Expand Abbreviations", value=True)
+                        correct_spelling_ppf = gr.Checkbox(label="Correct Spellings", value=True)
+                        lemmatise_ppf = gr.Checkbox(label="Lemmatise", value=True)
+                    
+                    submit_file_btn = gr.Button("Submit")
+                    file_output = gr.Textbox(label="Processed Output", lines=10, max_lines=15)
+                
+                    submit_file_btn.click(
+                        process_uploaded_file,
+                        inputs=[
+                            file_input,
+                            lowercase_ppf,
+                            remove_stopwords_ppf,
+                            remove_html_ppf,
+                            remove_emoji_ppf,
+                            remove_whitespaces_ppf,
+                            remove_punctuations_ppf,
+                            expand_contraction_ppf,
+                            expand_abbrev_ppf,
+                            correct_spelling_ppf,
+                            lemmatise_ppf,
+                        ],
+                        outputs=[file_output]
+                    )
+
         with gr.TabItem("get_tokens()"):
             
             with gr.Tabs():
@@ -307,16 +413,16 @@ with gr.Blocks(title="textcleaner-partha by Dr. Partha Majumdar") as app:
                         example_output_gt = gr.Textbox(label="Extracted Tokens", lines=6)
         
                     with gr.Row():
-                        ex_lowercase_gt = gr.Checkbox(label="Lowercase")
-                        ex_remove_stopwords_gt = gr.Checkbox(label="Remove Stop Words")
-                        ex_remove_html_gt = gr.Checkbox(label="Remove HTML tags")
-                        ex_remove_emoji_gt = gr.Checkbox(label="Remove Emojis")
-                        ex_remove_whitespaces_gt = gr.Checkbox(label="Remove White Spaces")
-                        ex_remove_punctuations_gt = gr.Checkbox(label="Remove Punctuations")
-                        ex_expand_contraction_gt = gr.Checkbox(label="Expand Contractions")
-                        ex_expand_abbrev_gt = gr.Checkbox(label="Expand Abbreviations")
-                        ex_correct_spelling_gt = gr.Checkbox(label="Correct Spellings")
-                        ex_lemmatise_gt = gr.Checkbox(label="Lemmatise")
+                        ex_lowercase_gt = gr.Checkbox(label="Lowercase", value=True)
+                        ex_remove_stopwords_gt = gr.Checkbox(label="Remove Stop Words", value=True)
+                        ex_remove_html_gt = gr.Checkbox(label="Remove HTML tags", value=True)
+                        ex_remove_emoji_gt = gr.Checkbox(label="Remove Emojis", value=True)
+                        ex_remove_whitespaces_gt = gr.Checkbox(label="Remove White Spaces", value=True)
+                        ex_remove_punctuations_gt = gr.Checkbox(label="Remove Punctuations", value=True)
+                        ex_expand_contraction_gt = gr.Checkbox(label="Expand Contractions", value=True)
+                        ex_expand_abbrev_gt = gr.Checkbox(label="Expand Abbreviations", value=True)
+                        ex_correct_spelling_gt = gr.Checkbox(label="Correct Spellings", value=True)
+                        ex_lemmatise_gt = gr.Checkbox(label="Lemmatise", value=True)
         
                     example_button_gt = gr.Button("Try an Example")
         
@@ -395,6 +501,48 @@ with gr.Blocks(title="textcleaner-partha by Dr. Partha Majumdar") as app:
                             lemmatise_gt,
                             output_text_gt,
                         ]
+                    )
+     
+                with gr.Tab("Process from Files"):
+                    gr.Markdown("### Upload a TXT, DOCX, or PDF file for fetch tokens")
+                
+                    file_input_gtf = gr.File(
+                        label="Upload File",
+                        file_types=[".txt", ".docx", ".pdf"],  # Restrict file extensions
+                        type="filepath"  # Correct type to return the file path
+                    )
+
+                    with gr.Row():
+                        lowercase_gtf = gr.Checkbox(label="Lowercase", value=True)
+                        remove_stopwords_gtf = gr.Checkbox(label="Remove Stop Words", value=True)
+                        remove_html_gtf = gr.Checkbox(label="Remove HTML tags", value=True)
+                        remove_emoji_gtf = gr.Checkbox(label="Remove Emojis", value=True)
+                        remove_whitespaces_gtf = gr.Checkbox(label="Remove White Spaces", value=True)
+                        remove_punctuations_gtf = gr.Checkbox(label="Remove Punctuations", value=True)
+                        expand_contraction_gtf = gr.Checkbox(label="Expand Contractions", value=True)
+                        expand_abbrev_gtf = gr.Checkbox(label="Expand Abbreviations", value=True)
+                        correct_spelling_gtf = gr.Checkbox(label="Correct Spellings", value=True)
+                        lemmatise_gtf = gr.Checkbox(label="Lemmatise", value=True)
+                    
+                    submit_file_btn_gtf = gr.Button("Submit")
+                    file_output_gtf = gr.Textbox(label="Collected Tokens", lines=5, max_lines=15)
+                
+                    submit_file_btn_gtf.click(
+                        get_tokens_from_file,
+                        inputs=[
+                            file_input_gtf,
+                            lowercase_gtf,
+                            remove_stopwords_gtf,
+                            remove_html_gtf,
+                            remove_emoji_gtf,
+                            remove_whitespaces_gtf,
+                            remove_punctuations_gtf,
+                            expand_contraction_gtf,
+                            expand_abbrev_gtf,
+                            correct_spelling_gtf,
+                            lemmatise_gtf,
+                        ],
+                        outputs=[file_output_gtf]
                     )
     
     gr.HTML(f"""
