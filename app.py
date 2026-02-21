@@ -1,3 +1,41 @@
+# =============================================================================
+# textcleaner™ – Demonstration Application
+# -----------------------------------------------------------------------------
+# Author: Dr Partha Majumdar
+#
+# Version: 1.0.0
+# Release Year: 2026
+#
+# © 2026 Dr Partha Majumdar. All Rights Reserved.
+#
+# This software program demonstrates the capabilities of the proprietary
+# textcleaner™ Python library developed by Dr Partha Majumdar.
+#
+# The demonstration includes text preprocessing, normalisation,
+# cleaning workflows, configurable linguistic operations, and
+# illustrative user interface components designed to showcase
+# the functionality of the textcleaner™ library.
+#
+# The source code, algorithms, preprocessing logic, configuration
+# structures, documentation, and associated materials are the
+# exclusive intellectual property of Dr Partha Majumdar.
+#
+# Unauthorised copying, modification, redistribution, reverse
+# engineering, sublicensing, or commercial use of this Software,
+# in whole or in part, is strictly prohibited without prior written
+# permission from the copyright holder.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+# NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE
+# OF THIS SOFTWARE.
+#
+# For licensing or commercial deployment inquiries:
+# Contact: partha.majumdar@majumdarconsultancy.in
+# =============================================================================
+
 # app.py
 
 import os
@@ -554,6 +592,25 @@ with gr.Blocks(title="textcleaner-partha by Dr. Partha Majumdar") as app:
         </a>
         """)
 
+    with gr.Row():
+        gr.HTML("""
+        <a href="https://huggingface.co/spaces/partha6369/partha-research-centre"
+           target="_blank"
+           rel="noopener noreferrer">
+            <button style="
+                background-color:#111827;
+                color:white;
+                border:none;
+                padding:10px 20px;
+                font-size:16px;
+                border-radius:8px;
+                cursor:pointer;
+                margin-top:10px;">
+                🔗 Dr Partha Majumdar's Research Centre
+            </button>
+        </a>
+        """)
+    
     # Triggered on load
     app.load(
         fn=random_example,
